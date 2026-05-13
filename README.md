@@ -76,11 +76,13 @@ Utiliza las flechas del teclado:
 ⬇️ Abajo
 ⬅️ Izquierda
 ➡️ Derecha
-Interacción
+
+
+**Interacción**
 
 Presiona:
 
-E
+"E"
 
 para:
 
