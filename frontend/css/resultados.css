@@ -1,0 +1,244 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #eee;
+}
+
+h1 {
+    color: #667eea;
+    font-size: 2.5em;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#user-name {
+    font-size: 1.1em;
+    color: #333;
+    font-weight: 600;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#logout-btn {
+    background: #c97a1f;
+    color: white;
+}
+
+#logout-btn:hover {
+    background: #a8651a;
+}
+
+.nav-buttons {
+    margin-bottom: 30px;
+}
+
+#volver-juego-btn {
+    background: #25949c;
+    color: white;
+}
+
+#volver-juego-btn:hover {
+    background: #1a7a82;
+}
+
+.loading {
+    text-align: center;
+    padding: 60px;
+    font-size: 1.2em;
+    color: #666;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#reportes-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+#reportes-list {
+    display: grid;
+    gap: 20px;
+}
+
+.reporte-card {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 25px;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.reporte-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    transform: translateY(-2px);
+}
+
+.reporte-card h3 {
+    color: #667eea;
+    margin-bottom: 10px;
+    font-size: 1.3em;
+}
+
+.reporte-card .fecha {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+.reporte-card .preview {
+    color: #333;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.reporte-card .ver-mas {
+    color: #667eea;
+    font-weight: 600;
+    margin-top: 15px;
+    display: inline-block;
+}
+
+#no-reportes {
+    text-align: center;
+    padding: 60px;
+    color: #666;
+}
+
+#no-reportes p {
+    font-size: 1.2em;
+    line-height: 1.8;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 20px;
+    max-width: 900px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 2px solid #eee;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.modal-header h2 {
+    color: white;
+    font-size: 1.5em;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    font-size: 2em;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.modal-body {
+    padding: 30px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+#modal-content {
+    line-height: 1.8;
+    color: #333;
+    white-space: pre-wrap;
+}
+
+#modal-content h3 {
+    color: #667eea;
+    margin: 25px 0 15px 0;
+    font-size: 1.3em;
+}
+
+#modal-content p {
+    margin-bottom: 15px;
+}
+
+#modal-content ul {
+    margin: 15px 0;
+    padding-left: 30px;
+}
+
+#modal-content li {
+    margin-bottom: 10px;
+}

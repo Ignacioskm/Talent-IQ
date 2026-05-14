@@ -1,5 +1,15 @@
 console.log("GAME JS CARGADO");
 
+const API_URL = 'http://localhost:3000';
+
+// Check authentication
+const token = localStorage.getItem('token');
+const user = JSON.parse(localStorage.getItem('user'));
+
+if (!token || !user) {
+    window.location.href = 'login.html';
+}
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -16,6 +26,24 @@ const mensajeInteraccion =
 document.getElementById(
     "mensaje-interaccion"
 );
+
+// UI Elements
+const userNameSpan = document.getElementById('user-name');
+const logoutBtn = document.getElementById('logout-btn');
+const npcCountSpan = document.getElementById('npc-count');
+const generarReporteBtn = document.getElementById('generar-reporte-btn');
+const resultadosBtn = document.getElementById('resultados-btn');
+const adminBtn = document.getElementById('admin-btn');
+
+// Set user info
+userNameSpan.textContent = user.nombre;
+if (user.rol === 'admin') {
+    adminBtn.classList.remove('hidden');
+}
+
+// NPC counter
+let npcsInteractuados = 0;
+const npcsInteractuadosSet = new Set();
 
 const mapas = {
 
@@ -147,6 +175,7 @@ const puertas = {
 const keys = {};
 
 let npcCercana = null;
+let tiempoInicioInteraccion = null;
 
 const mensajesFeedback = [
 
@@ -232,6 +261,7 @@ document.addEventListener("keydown", (e) => {
             escenario,
             npcCercana.nombre
         );
+        tiempoInicioInteraccion = Date.now();
     }
 });
 
@@ -558,10 +588,11 @@ function mostrarEscenario(
             }, 1500);
 
             try {
-
+                const tiempoRespuesta = Date.now() - tiempoInicioInteraccion;
+                
                 await fetch(
 
-                    "http://localhost:3000/guardar",
+                    `${API_URL}/guardar`,
 
                     {
 
@@ -570,14 +601,30 @@ function mostrarEscenario(
                         headers: {
 
                             "Content-Type":
-                            "application/json"
+                            "application/json",
+                            "Authorization": `Bearer ${token}`
                         },
 
-                        body: JSON.stringify(
-                            opcion.puntaje
-                        )
+                        body: JSON.stringify({
+                            npcId: npcCercana.nombre,
+                            opcionElegida: opcion.texto,
+                            puntajes: opcion.puntaje,
+                            tiempoRespuesta
+                        })
                     }
                 );
+                
+                // Update NPC counter
+                if (!npcsInteractuadosSet.has(npcCercana.nombre)) {
+                    npcsInteractuadosSet.add(npcCercana.nombre);
+                    npcsInteractuados++;
+                    npcCountSpan.textContent = npcsInteractuados;
+                    
+                    // Enable report button if 5 or more NPCs
+                    if (npcsInteractuados >= 5) {
+                        generarReporteBtn.disabled = false;
+                    }
+                }
 
             } catch(error) {
 
@@ -607,5 +654,51 @@ function gameLoop() {
         gameLoop
     );
 }
+
+// Event listeners for UI buttons
+logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = 'login.html';
+});
+
+resultadosBtn.addEventListener('click', () => {
+    window.location.href = 'resultados.html';
+});
+
+adminBtn.addEventListener('click', () => {
+    window.location.href = 'admin.html';
+});
+
+generarReporteBtn.addEventListener('click', async () => {
+    try {
+        generarReporteBtn.disabled = true;
+        generarReporteBtn.textContent = 'Generando...';
+        
+        const response = await fetch(`${API_URL}/api/reportes/generar`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Reporte generado exitosamente. Ve a "Mis Resultados" para verlo.');
+            window.location.href = 'resultados.html';
+        } else {
+            alert(data.error || 'Error al generar reporte');
+            generarReporteBtn.disabled = false;
+            generarReporteBtn.textContent = 'Generar Reporte IA';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error de conexión');
+        generarReporteBtn.disabled = false;
+        generarReporteBtn.textContent = 'Generar Reporte IA';
+    }
+});
 
 gameLoop();

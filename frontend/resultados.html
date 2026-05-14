@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talent-IQ - Mis Resultados</title>
+    <link rel="stylesheet" href="css/resultados.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mis Resultados</h1>
+            <div class="user-info">
+                <span id="user-name"></span>
+                <button id="logout-btn">Cerrar Sesión</button>
+            </div>
+        </header>
+        
+        <div class="nav-buttons">
+            <button id="volver-juego-btn">Volver al Juego</button>
+        </div>
+        
+        <div id="loading" class="loading">Cargando reportes...</div>
+        
+        <div id="reportes-container" class="hidden">
+            <h2>Reportes Generados</h2>
+            <div id="reportes-list"></div>
+        </div>
+        
+        <div id="no-reportes" class="hidden">
+            <p>Aún no has generado ningún reporte. Interactúa con al menos 5 NPCs en el juego para generar tu primer análisis de habilidades blandas.</p>
+        </div>
+        
+        <div id="reporte-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">Reporte Detallado</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/resultados.js"></script>
+</body>
+</html>
