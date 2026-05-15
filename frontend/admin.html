@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talent-IQ - Panel de Administración</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Panel de Administración</h1>
+            <div class="user-info">
+                <span id="user-name"></span>
+                <button id="logout-btn">Cerrar Sesión</button>
+            </div>
+        </header>
+        
+        <div class="nav-tabs">
+            <button class="tab-btn active" data-tab="usuarios">Usuarios</button>
+            <button class="tab-btn" data-tab="reportes">Reportes</button>
+        </div>
+        
+        <div id="loading" class="loading">Cargando datos...</div>
+        
+        <!-- Usuarios Tab -->
+        <div id="usuarios-tab" class="tab-content active">
+            <div class="tab-header">
+                <h2>Usuarios Registrados</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Usuarios</span>
+                        <span class="stat-value" id="total-usuarios">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Decisiones Totales</span>
+                        <span class="stat-value" id="total-decisiones">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Reportes Generados</span>
+                        <span class="stat-value" id="total-reportes">0</span>
+                    </div>
+                </div>
+            </div>
+            <div id="usuarios-table-container"></div>
+        </div>
+        
+        <!-- Reportes Tab -->
+        <div id="reportes-tab" class="tab-content">
+            <div class="tab-header">
+                <h2>Todos los Reportes</h2>
+                <div class="filters">
+                    <input type="text" id="search-reportes" placeholder="Buscar por usuario...">
+                </div>
+            </div>
+            <div id="reportes-table-container"></div>
+        </div>
+        
+        <div id="reporte-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">Reporte Detallado</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/admin.js"></script>
+</body>
+</html>

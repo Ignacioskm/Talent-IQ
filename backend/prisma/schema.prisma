@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id           Int         @id @default(autoincrement())
+  nombre       String
+  email        String      @unique
+  password     String
+  rol          String      @default("user")
+  fechaCreacion DateTime @default(now())
+  decisiones   DecisionLog[]
+  reportes     ReporteIA[]
+}
+
+model DecisionLog {
+  id              Int      @id @default(autoincrement())
+  usuarioId       Int
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
+  npcId           String
+  opcionElegida   String
+  puntajesJson    Json
+  tiempoRespuesta Int
+  fecha           DateTime @default(now())
+}
+
+model ReporteIA {
+  id              Int      @id @default(autoincrement())
+  usuarioId       Int
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
+  contenidoNarrativo String
+  fechaGeneracion DateTime @default(now())
+}

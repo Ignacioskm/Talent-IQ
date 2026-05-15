@@ -13,6 +13,24 @@
 
 <body>
 
+    <div id="ui-overlay">
+        <div id="user-info">
+            <span id="user-name"></span>
+            <button id="logout-btn">Cerrar Sesión</button>
+        </div>
+        
+        <div id="npc-counter">
+            NPCs interactuados: <span id="npc-count">0</span>/3
+        </div>
+        
+        <button id="generar-reporte-btn" disabled>Generar Reporte IA</button>
+        
+        <div id="nav-buttons">
+            <button id="resultados-btn">Mis Resultados</button>
+            <button id="admin-btn" class="hidden">Admin Panel</button>
+        </div>
+    </div>
+
     <canvas id="game"></canvas>
 
     <div id="dialogo" class="hidden">
@@ -35,7 +53,7 @@
     
     <script src="js/audio.js"></script>
 
-    <!--script src="js/npc.js"></script>--> 
+    <!--script src="js/npc.js"></script--> 
 
     <script src="js/escenarios.js"></script>
 
