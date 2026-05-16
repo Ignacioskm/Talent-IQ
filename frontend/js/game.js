@@ -34,16 +34,139 @@ const npcCountSpan = document.getElementById('npc-count');
 const generarReporteBtn = document.getElementById('generar-reporte-btn');
 const resultadosBtn = document.getElementById('resultados-btn');
 const adminBtn = document.getElementById('admin-btn');
+const timerDisplay = document.getElementById('timer-display');
+const btnRetirarse = document.getElementById('btn-retirarse');
+const timeoutOverlay = document.getElementById('timeout-overlay');
+const processingOverlay = document.getElementById('processing-overlay');
+
+// Timer system variables
+const TIMER_DURATION = 12 * 60 * 1000; // 12 minutes in milliseconds (720,000ms)
+const RETIREMENT_LOCK_DURATION = 60 * 1000; // 1 minute in milliseconds (60,000ms)
+let timerInterval;
+let gameStartTime;
+let timerEndTime;
+
+// NPC counter
+let npcsInteractuados = 0;
+const npcsInteractuadosSet = new Set();
 
 // Set user info
 userNameSpan.textContent = user.nombre;
 if (user.rol === 'admin') {
     adminBtn.classList.remove('hidden');
+} else {
+    resultadosBtn.classList.add('hidden');
+    generarReporteBtn.classList.add('hidden');
 }
 
-// NPC counter
-let npcsInteractuados = 0;
-const npcsInteractuadosSet = new Set();
+// Initialize timer
+initTimer();
+
+function initTimer() {
+    const savedEndTime = localStorage.getItem('timerEndTime');
+
+    if (savedEndTime) {
+        timerEndTime = parseInt(savedEndTime);
+        gameStartTime = timerEndTime - TIMER_DURATION;
+
+        // Check if timer has already expired
+        const timeRemaining = timerEndTime - Date.now();
+        console.log('Timer loaded from localStorage - Time remaining:', timeRemaining, 'ms');
+        if (timeRemaining <= 0) {
+            activateTimeout();
+            return;
+        }
+    } else {
+        gameStartTime = Date.now();
+        timerEndTime = gameStartTime + TIMER_DURATION;
+        localStorage.setItem('timerEndTime', timerEndTime);
+        console.log('New timer initialized - End time:', timerEndTime, 'Duration:', TIMER_DURATION, 'ms');
+    }
+
+    startTimer();
+}
+
+function startTimer() {
+    updateTimerDisplay();
+
+    timerInterval = setInterval(() => {
+        const timeRemaining = timerEndTime - Date.now();
+
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            activateTimeout();
+        } else {
+            updateTimerDisplay();
+            checkRetirementButton();
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const timeRemaining = timerEndTime - Date.now();
+    const minutes = Math.floor(timeRemaining / 60000);
+    const seconds = Math.floor((timeRemaining % 60000) / 1000);
+    timerDisplay.textContent = `Tiempo: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function checkRetirementButton() {
+    const timeElapsed = Date.now() - gameStartTime;
+
+    if (timeElapsed >= RETIREMENT_LOCK_DURATION) {
+        btnRetirarse.classList.remove('disabled');
+        btnRetirarse.disabled = false;
+    }
+}
+
+function activateTimeout() {
+    timerDisplay.textContent = 'Tiempo: 00:00';
+    timeoutOverlay.classList.remove('hidden');
+    generarReporteAutomatico();
+}
+
+function clearTimer() {
+    clearInterval(timerInterval);
+    localStorage.removeItem('timerEndTime');
+}
+
+async function generarReporteAutomatico() {
+    try {
+        processingOverlay.classList.remove('hidden');
+
+        const response = await fetch(`${API_URL}/api/reportes/generar`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Reporte generado:', data);
+
+            clearTimer();
+
+            if (user.rol === 'admin') {
+                window.location.href = 'admin.html';
+            } else {
+                alert('Evaluación Completada con Éxito. RRHH se pondrá en contacto contigo');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            }
+        } else {
+            const errorData = await response.json();
+            console.error('Error al generar reporte:', errorData);
+            alert(errorData.error || 'Error al generar reporte');
+            processingOverlay.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error de conexión al generar reporte');
+        processingOverlay.classList.add('hidden');
+    }
+}
 
 const mapas = {
 
@@ -257,10 +380,7 @@ document.addEventListener("keydown", (e) => {
                 npcCercana.escenario
             ];
 
-        mostrarEscenario(
-            escenario,
-            npcCercana.nombre
-        );
+        mostrarEscenario(npcCercana.nombre);
         tiempoInicioInteraccion = Date.now();
     }
 });
@@ -529,127 +649,99 @@ function checkNPC() {
     }
 }
 
-function mostrarEscenario(
-    escenario,
-    nombreNPC
-) {
+async function mostrarEscenario(nombreNPC) {
+    try {
+        dialogo.classList.remove("hidden");
+        ocultarMensajeInteraccion();
 
-    dialogo.classList.remove(
-        "hidden"
-    );
+        titulo.innerText = nombreNPC;
+        texto.innerText = "Cargando situación con IA...";
+        opcionesDiv.innerHTML = "";
 
-    ocultarMensajeInteraccion();
+        const response = await fetch(`${API_URL}/api/decisiones/escenario/${nombreNPC}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
 
-    titulo.innerText =
-    nombreNPC;
+        if (!response.ok) {
+            throw new Error('Error al cargar escenario');
+        }
 
-    texto.innerText =
-    escenario.texto;
+        const escenario = await response.json();
 
-    opcionesDiv.innerHTML = "";
+        texto.innerText = escenario.texto;
+        opcionesDiv.innerHTML = "";
 
-    escenario.opciones.forEach(
-        (opcion) => {
+        escenario.opciones.forEach((opcion) => {
+            const btn = document.createElement("button");
+            btn.innerText = opcion.texto;
 
-        const btn =
-        document.createElement(
-            "button"
-        );
+            const npcNombre = nombreNPC;
 
-        btn.innerText =
-        opcion.texto;
+            btn.onclick = async () => {
+                dialogo.classList.add("hidden");
 
-        const npcNombre = nombreNPC;
+                const mensaje = mensajesFeedback[Math.floor(Math.random() * mensajesFeedback.length)];
+                feedback.innerText = mensaje;
+                feedback.style.display = "block";
 
-        btn.onclick =
-        async () => {
+                setTimeout(() => {
+                    feedback.style.display = "none";
+                }, 1500);
 
-            dialogo.classList.add(
-                "hidden"
-            );
+                try {
+                    const tiempoRespuesta = Date.now() - tiempoInicioInteraccion;
 
-            const mensaje =
-                mensajesFeedback[
-                    Math.floor(
-                        Math.random() *
-                        mensajesFeedback.length
-                    )
-                ];
+                    console.log('Enviando decisión:', {
+                        npcId: npcNombre,
+                        opcionElegida: opcion.texto,
+                        puntajes: opcion.puntaje,
+                        tiempoRespuesta
+                    });
 
-            feedback.innerText =
-            mensaje;
-
-            feedback.style.display =
-            "block";
-
-            setTimeout(() => {
-
-                feedback.style.display =
-                "none";
-
-            }, 1500);
-
-            try {
-                const tiempoRespuesta = Date.now() - tiempoInicioInteraccion;
-                
-                console.log('Enviando decisión:', {
-                    npcId: npcNombre,
-                    opcionElegida: opcion.texto,
-                    puntajes: opcion.puntaje,
-                    tiempoRespuesta
-                });
-                
-                const response = await fetch(
-
-                    `${API_URL}/guardar`,
-
-                    {
-
+                    const response = await fetch(`${API_URL}/guardar`, {
                         method: "POST",
-
                         headers: {
-
-                            "Content-Type":
-                            "application/json",
+                            "Content-Type": "application/json",
                             "Authorization": `Bearer ${token}`
                         },
-
                         body: JSON.stringify({
                             npcId: npcNombre,
                             opcionElegida: opcion.texto,
                             puntajes: opcion.puntaje,
                             tiempoRespuesta
                         })
-                    }
-                );
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Decisión guardada:', data);
-                } else {
-                    console.error('Error al guardar decisión:', response.status);
-                }
-                
-            } catch(error) {
-                console.error('Error en fetch:', error);
-            }
-            
-            if (!npcsInteractuadosSet.has(npcNombre)) {
-                npcsInteractuadosSet.add(npcNombre);
-                npcsInteractuados++;
-                npcCountSpan.textContent = npcsInteractuados;
-                console.log('NPCs interactuados:', npcsInteractuados);
-                
-                if (npcsInteractuados >= 3) {
-                    generarReporteBtn.disabled = false;
-                }
-            }
-        };
+                    });
 
-        opcionesDiv.appendChild(
-            btn
-        );
-    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Decisión guardada:', data);
+                    } else {
+                        console.error('Error al guardar decisión:', response.status);
+                    }
+                } catch (error) {
+                    console.error('Error en fetch:', error);
+                }
+
+                if (!npcsInteractuadosSet.has(npcNombre)) {
+                    npcsInteractuadosSet.add(npcNombre);
+                    npcsInteractuados++;
+                    npcCountSpan.textContent = npcsInteractuados;
+                    console.log('NPCs interactuados:', npcsInteractuados);
+
+                    if (npcsInteractuados >= 3) {
+                        generarReporteBtn.disabled = false;
+                    }
+                }
+            };
+
+            opcionesDiv.appendChild(btn);
+        });
+    } catch (error) {
+        console.error('Error al cargar escenario:', error);
+        texto.innerText = 'Error al cargar el escenario. Por favor intenta nuevamente.';
+    }
 }
 
 function gameLoop() {
@@ -688,7 +780,7 @@ generarReporteBtn.addEventListener('click', async () => {
     try {
         generarReporteBtn.disabled = true;
         generarReporteBtn.textContent = 'Generando...';
-        
+
         const response = await fetch(`${API_URL}/api/reportes/generar`, {
             method: 'POST',
             headers: {
@@ -696,9 +788,9 @@ generarReporteBtn.addEventListener('click', async () => {
                 'Authorization': `Bearer ${token}`
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (response.ok) {
             alert('Reporte generado exitosamente. Ve a "Mis Resultados" para verlo.');
             window.location.href = 'resultados.html';
@@ -712,6 +804,18 @@ generarReporteBtn.addEventListener('click', async () => {
         alert('Error de conexión');
         generarReporteBtn.disabled = false;
         generarReporteBtn.textContent = 'Generar Reporte IA';
+    }
+});
+
+btnRetirarse.addEventListener('click', async () => {
+    if (btnRetirarse.disabled) return;
+
+    // Stop the game
+    const confirmation = confirm('¿Estás seguro de que deseas finalizar la simulación? Esta acción generará tu reporte con las interacciones realizadas hasta el momento.');
+
+    if (confirmation) {
+        clearInterval(timerInterval);
+        await generarReporteAutomatico();
     }
 });
 

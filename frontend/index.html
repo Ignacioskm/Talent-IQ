@@ -18,13 +18,17 @@
             <span id="user-name"></span>
             <button id="logout-btn">Cerrar Sesión</button>
         </div>
-        
+
+        <div id="timer-display">Tiempo: 12:00</div>
+
         <div id="npc-counter">
             NPCs interactuados: <span id="npc-count">0</span>/3
         </div>
-        
+
+        <button id="btn-retirarse" class="disabled" disabled>Finalizar Simulación</button>
+
         <button id="generar-reporte-btn" disabled>Generar Reporte IA</button>
-        
+
         <div id="nav-buttons">
             <button id="resultados-btn">Mis Resultados</button>
             <button id="admin-btn" class="hidden">Admin Panel</button>
@@ -50,6 +54,19 @@
     <div id="npc-nombres"></div>
 
     <div id="mensaje-interaccion"></div>
+
+    <div id="timeout-overlay" class="hidden">
+        <div class="overlay-content">
+            <h2>Tiempo Agotado</h2>
+            <p>Procesando tu informe con IA...</p>
+        </div>
+    </div>
+
+    <div id="processing-overlay" class="hidden">
+        <div class="overlay-content">
+            <h2>Procesando tu informe con IA...</h2>
+        </div>
+    </div>
     
     <script src="js/audio.js"></script>
 

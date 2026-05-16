@@ -213,6 +213,21 @@ tbody tr:hover {
     color: white;
 }
 
+.badge-success {
+    background: #28a745;
+    color: white;
+}
+
+.badge-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.text-muted {
+    color: #6c757d;
+    font-style: italic;
+}
+
 .action-btn {
     padding: 6px 12px;
     font-size: 12px;

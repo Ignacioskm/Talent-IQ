@@ -5,7 +5,7 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { authMiddleware, adminMiddleware } = require('./middleware/auth');
-const { generarReporteIA } = require('./services/geminiService');
+const { generarReporteIA, generarEscenarioDinamico } = require('./services/geminiService');
 
 const app = express();
 const prisma = new PrismaClient();
@@ -159,11 +159,23 @@ app.get("/api/decisiones/conteo", authMiddleware, async (req, res) => {
         const conteo = await prisma.decisionLog.count({
             where: { usuarioId: req.userId }
         });
-        
+
         res.json({ conteo });
     } catch (error) {
         console.error('Error al obtener conteo:', error);
         res.status(500).json({ error: 'Error al obtener conteo' });
+    }
+});
+
+// Endpoint para generar escenario dinámico con Gemini
+app.get("/api/decisiones/escenario/:npcId", authMiddleware, async (req, res) => {
+    try {
+        const { npcId } = req.params;
+        const escenario = await generarEscenarioDinamico(npcId);
+        res.json(escenario);
+    } catch (error) {
+        console.error('Error al generar escenario:', error);
+        res.status(500).json({ error: 'Error al generar escenario con IA' });
     }
 });
 
@@ -199,14 +211,14 @@ app.post("/api/reportes/generar", authMiddleware, async (req, res) => {
     }
 });
 
-// Endpoint para obtener reportes del usuario actual
-app.get("/api/reportes/mis-reportes", authMiddleware, async (req, res) => {
+// Endpoint para obtener reportes del usuario actual (solo admin)
+app.get("/api/reportes/mis-reportes", authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const reportes = await prisma.reporteIA.findMany({
             where: { usuarioId: req.userId },
             orderBy: { fechaGeneracion: 'desc' }
         });
-        
+
         res.json(reportes);
     } catch (error) {
         console.error('Error al obtener reportes:', error);
@@ -214,30 +226,7 @@ app.get("/api/reportes/mis-reportes", authMiddleware, async (req, res) => {
     }
 });
 
-// Endpoint para obtener un reporte específico
-app.get("/api/reportes/:id", authMiddleware, async (req, res) => {
-    try {
-        const reporte = await prisma.reporteIA.findUnique({
-            where: { id: parseInt(req.params.id) }
-        });
-        
-        if (!reporte) {
-            return res.status(404).json({ error: 'Reporte no encontrado' });
-        }
-        
-        // Verificar que el reporte pertenezca al usuario o sea admin
-        if (reporte.usuarioId !== req.userId && req.userRol !== 'admin') {
-            return res.status(403).json({ error: 'Acceso denegado' });
-        }
-        
-        res.json(reporte);
-    } catch (error) {
-        console.error('Error al obtener reporte:', error);
-        res.status(500).json({ error: 'Error al obtener reporte' });
-    }
-});
-
-// Endpoint admin para obtener todos los reportes
+// Endpoint admin para obtener todos los reportes (debe estar antes de /:id)
 app.get("/api/reportes/todos", authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const reportes = await prisma.reporteIA.findMany({
@@ -252,11 +241,41 @@ app.get("/api/reportes/todos", authMiddleware, adminMiddleware, async (req, res)
             },
             orderBy: { fechaGeneracion: 'desc' }
         });
-        
+
         res.json(reportes);
     } catch (error) {
         console.error('Error al obtener todos los reportes:', error);
         res.status(500).json({ error: 'Error al obtener reportes' });
+    }
+});
+
+// Endpoint para obtener un reporte específico
+app.get("/api/reportes/:id", authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const reporteId = parseInt(id, 10);
+
+        if (isNaN(reporteId)) {
+            return res.status(400).json({ error: "El ID proporcionado no es un número válido" });
+        }
+
+        const reporte = await prisma.reporteIA.findUnique({
+            where: { id: reporteId }
+        });
+
+        if (!reporte) {
+            return res.status(404).json({ error: 'Reporte no encontrado' });
+        }
+
+        // Verificar que el reporte pertenezca al usuario o sea admin
+        if (reporte.usuarioId !== req.userId && req.userRol !== 'admin') {
+            return res.status(403).json({ error: 'Acceso denegado' });
+        }
+
+        res.json(reporte);
+    } catch (error) {
+        console.error('Error al obtener reporte:', error);
+        res.status(500).json({ error: 'Error al obtener reporte' });
     }
 });
 

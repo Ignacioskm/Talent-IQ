@@ -397,6 +397,70 @@ button:active {
     box-shadow:
         0 0 0 3px #267488,
         0 4px 10px rgba(0,0,0,0.25);
+}
 
-    white-space: nowrap;
+#timer-display {
+    color: #fff;
+    font-size: 12px;
+    background: rgba(255, 165, 0, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 2px solid #ffd166;
+}
+
+#btn-retirarse {
+    width: auto;
+    margin: 0;
+    padding: 10px 15px;
+    font-size: 9px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border: 2px solid #c44569;
+}
+
+#btn-retirarse.disabled {
+    background: #666;
+    border-color: #444;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+#btn-retirarse.disabled:hover {
+    transform: none;
+    background: #666;
+}
+
+#timeout-overlay,
+#processing-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.overlay-content {
+    background: rgba(255, 245, 220, 0.95);
+    border: 5px solid #f7a440;
+    border-radius: 14px;
+    padding: 40px;
+    text-align: center;
+    font-family: 'Press Start 2P', cursive;
+    color: #2d2d2d;
+    max-width: 500px;
+}
+
+.overlay-content h2 {
+    color: #f7973d;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.overlay-content p {
+    font-size: 12px;
+    line-height: 1.6;
 }

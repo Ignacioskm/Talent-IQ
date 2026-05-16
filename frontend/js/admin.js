@@ -106,27 +106,33 @@ document.addEventListener('DOMContentLoaded', () => {
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Nombre</th>
                         <th>Email</th>
-                        <th>Rol</th>
-                        <th>Fecha Registro</th>
-                        <th>Decisiones</th>
-                        <th>Reportes</th>
+                        <th>Fecha de Evaluación</th>
+                        <th>N° de Decisiones</th>
+                        <th>Estado del Reporte</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${usuarios.map(usuario => `
+                    ${usuarios.map(usuario => {
+                        const tieneReporte = usuario._count.reportes > 0;
+                        const estadoReporte = tieneReporte ? 'Generado' : 'Pendiente';
+                        const estadoClass = tieneReporte ? 'badge-success' : 'badge-warning';
+
+                        return `
                         <tr>
-                            <td>${usuario.id}</td>
                             <td>${usuario.nombre}</td>
                             <td>${usuario.email}</td>
-                            <td><span class="badge badge-${usuario.rol}">${usuario.rol}</span></td>
-                            <td>${new Date(usuario.fechaCreacion).toLocaleDateString('es-ES')}</td>
+                            <td>${usuario._count.decisiones > 0 ? new Date(usuario.fechaCreacion).toLocaleDateString('es-ES') : '-'}</td>
                             <td>${usuario._count.decisiones}</td>
-                            <td>${usuario._count.reportes}</td>
+                            <td><span class="badge ${estadoClass}">${estadoReporte}</span></td>
+                            <td>
+                                ${tieneReporte ? `<button class="action-btn view-btn" onclick="verReporteUsuario(${usuario.id})">Ver Informe</button>` : '<span class="text-muted">Sin informe</span>'}
+                            </td>
                         </tr>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </tbody>
             </table>
         `;
@@ -166,13 +172,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${API_URL}/api/reportes/${reporteId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (response.ok) {
                 const reporte = await response.json();
                 modalContent.innerHTML = formatearReporte(reporte.contenidoNarrativo);
                 reporteModal.classList.remove('hidden');
             } else {
                 alert('Error al cargar el reporte');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error de conexión');
+        }
+    };
+
+    window.verReporteUsuario = async (usuarioId) => {
+        try {
+            const response = await fetch(`${API_URL}/api/reportes/todos`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const reportes = await response.json();
+                const reporteUsuario = reportes.find(r => r.usuarioId === usuarioId);
+
+                if (reporteUsuario) {
+                    modalContent.innerHTML = formatearReporte(reporteUsuario.contenidoNarrativo);
+                    reporteModal.classList.remove('hidden');
+                } else {
+                    alert('No se encontró reporte para este usuario');
+                }
+            } else {
+                alert('Error al cargar los reportes');
             }
         } catch (error) {
             console.error('Error:', error);
